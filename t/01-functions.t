@@ -1,3 +1,4 @@
+use lib 'lib';
 use strict;
 use warnings;
 use Test::More tests => 22;
@@ -31,24 +32,24 @@ is is_valid_date(2002, 1, 32), 0, 'is_valid_year long month B';
 is is_valid_date(2003, 4, 30), 1, 'is_valid_year short month A';
 is is_valid_date(2003, 4, 31), 0, 'is_valid_year short month B';
 
-my $h = time_hashref($time);
-is 'HASH', ref($h), 'time_hashref returns hashref';
-is $h->{year}, 1975, 'time_hashref year';
-is $h->{month}, '09', 'time_hashref month';
-is $h->{day}, '03', 'time_hashref day';
-is $h->{hour}, '08', 'time_hashref hour';
-is $h->{minute}, '33', 'time_hashref minute';
-is $h->{second}, '12.0067514', 'time_hashref second';
+my $h = gmtime_hashref($time);
+is 'HASH', ref($h), 'gmtime_hashref returns hashref';
+is $h->{year}, 1975, 'gmtime_hashref year';
+is $h->{month}, '09', 'gmtime_hashref month';
+is $h->{day}, '03', 'gmtime_hashref day';
+is $h->{hour}, '13', 'gmtime_hashref hour';
+is $h->{minute}, '33', 'gmtime_hashref minute';
+is $h->{second}, '12.0067514', 'gmtime_hashref second';
 
-my $time_from = get_time_from (
+my $time_from = get_gmtime_from (
 	year 	=> 1975,
 	month	=> 9,
 	day		=> 3,
-	hour	=> 8,
+	hour	=> 13,
 	minute	=> 33,
 	second	=> 12.0067514,
 );
-is $time_from, $time, 'get_time_from';
+is $time_from, $time, 'get_gmtime_from';
 
 my $future_time = scalar gmtime '1444222866.7336199';
 my $past_time = scalar gmtime '0.7336199';

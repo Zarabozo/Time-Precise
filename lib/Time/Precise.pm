@@ -8,10 +8,10 @@ use Time::HiRes;
 
 use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK $PRECISION );
 use subs qw(localtime gmtime time sleep );
-$VERSION   = '1.0000';
+$VERSION   = '1.0002';
 
 @ISA    = qw(Exporter);
-@EXPORT = qw(time localtime gmtime sleep timegm timelocal is_valid_date is_leap_year time_hashref gmtime_hashref get_time_from);
+@EXPORT = qw(time localtime gmtime sleep timegm timelocal is_valid_date is_leap_year time_hashref gmtime_hashref get_time_from get_gmtime_from);
 
 $PRECISION = 7;
 my @MonthDays = ( 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 );
@@ -254,7 +254,7 @@ sub is_valid_date {
 	return 0 if ($month < 1 or $month > 12);
 	return 0 if $day < 1;
 	if ($month == 2) {
-		if (is_leap_year $year) {
+		if (is_leap_year($year)) {
 			return 0 if $day > 29;
 		} else {
 			return 0 if $day > 28;
@@ -298,9 +298,18 @@ sub _time_hashref {
 }
 
 sub get_time_from {
+	_get_time_from('', @_);
+}
+
+sub get_gmtime_from {
+	_get_time_from(1, @_);
+}
+
+sub _get_time_from {
 	my @call = caller;
+	my $gm = shift;
 	die("get_time_from expects name => value optional parameters (day, month, year, hour, minute, second) at $call[1] line $call[2]\n") if @_ % 2;
-	my $time = time_hashref;
+	my $time = $gm ? gmtime_hashref : time_hashref;
 	my $p = {
 		day => $time->{day},
 		month => $time->{month},
@@ -319,7 +328,7 @@ sub get_time_from {
 	}
 	my $max_day = $month_duration->{int $p->{month}} + ((int($p->{month}) == 2) ? is_leap_year($p->{year}) ? 1 : 0 : 0);
 	die("Invalid parameter day, out of range 1-$max_day at $call[1] line $call[2]\n") unless $p->{day} >= 1 and $p->{day} <= $max_day;
-	timelocal($p->{second}, $p->{minute}, $p->{hour}, $p->{day}, $p->{month}-1, $p->{year});
+	$gm ? timegm($p->{second}, $p->{minute}, $p->{hour}, $p->{day}, $p->{month}-1, $p->{year}) : timelocal($p->{second}, $p->{minute}, $p->{hour}, $p->{day}, $p->{month}-1, $p->{year});
 }
 
 1;
@@ -369,7 +378,7 @@ B<Note that this module won't affect any other code or modules, it will only aff
 =head1 EXPORT
 
 Functions exported by default: C<time>, C<localtime>, C<gmtime>, C<sleep>, C<timegm>, C<timelocal>, C<is_valid_date>,
-C<is_leap_year>, C<time_hashref>, C<gmtime_hashref>, C<get_time_from>.
+C<is_leap_year>, C<time_hashref>, C<gmtime_hashref>, C<get_time_from>, C<get_gmtime_from>.
 
 
 =head1 Functions
@@ -394,9 +403,9 @@ This will return 1 or 0 depending on the date passed being valid.
 
 This will return 1 or 0 depending on the year passed being a leap year.
 
-=head2 time_hashref(<$seconds>), gmtime_hashref(<$gmt_seconds>)
+=head2 time_hashref(<$seconds>), gmtime_hashref(<$gmt_seconds>), gmtime_hashref(<$seconds>), gmtime_hashref(<$gmt_seconds>)
 
-This is a variation of C<localtime>. It takes an optional C<$seconds> argument or uses the current time if no
+This is a variation of C<localtime> and C<gmtime> respectively. It takes an optional C<$seconds> argument or uses the current time if no
 argument is passed. It will return a hashref containing the corresponding elements for it. Example:
 
 	{
@@ -413,6 +422,8 @@ argument is passed. It will return a hashref containing the corresponding elemen
 	}
 
 =head2 get_time_from(year => $year, month => $month, day => $day, hour => $hour, minute => $minute, second => $second)
+
+=head2 get_gmtime_from(year => $year, month => $month, day => $day, hour => $hour, minute => $minute, second => $second)
 
 This function helps you get the corresponding time in seconds for the specified named arguments. All arguments are optional,
 but if you don't specify anything at all, then it will default to the current date at 0:00 hours. Month is 1..12 based.

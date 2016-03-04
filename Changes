@@ -1,4 +1,6 @@
 Revision history for Time-Precise
 
-1.0	  2015-10-07
+1.0		2015-10-07
 		First version, released on an unsuspecting world.
+1.0002	2015-10-07
+		Bugfix affecting Linux platforms.
