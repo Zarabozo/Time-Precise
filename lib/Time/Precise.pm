@@ -8,7 +8,7 @@ use Time::HiRes;
 
 use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK $PRECISION );
 use subs qw(localtime gmtime time sleep );
-$VERSION   = '1.0008';
+$VERSION   = '1.0010';
 
 @ISA    = qw(Exporter);
 @EXPORT = qw(time localtime gmtime sleep timegm timelocal is_valid_date is_leap_year time_hashref gmtime_hashref get_time_from get_gmtime_from);
@@ -90,6 +90,9 @@ sub time () {
 sub _localtime {
 	my $gm = shift;
 	my $arg = $_[0];
+	if ($arg < 0) {
+		croak "Negative seconds require a Perl version >= 5.012" unless $] >= 5.012;
+	}
 	$arg = time unless defined $arg;
 	$arg = sprintf '%.'.$PRECISION.'f', $arg;
 	my ($seconds, $microseconds) = split /\./, $arg;
@@ -100,6 +103,7 @@ sub _localtime {
 		return @lt;
 	} else {
 		my $str = $gm ? scalar CORE::gmtime($arg) : scalar CORE::localtime($arg);
+		$str = 0 unless defined $str;
 		$str =~ s/(\d{2}:\d{2}:\d{2}) (\d{4})/$PRECISION ? "$1.$microseconds $2" : "$1 $2"/e;
 		$str;
 	}

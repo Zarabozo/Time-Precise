@@ -10,3 +10,5 @@ Revision history for Time-Precise
         Bugfix on localtime, it was using a dot for seconds even when $PRECISION was set to zero
 1.0008  2015-10-08
         Fixed incorrect META.yml reported in RT 112413
+1.0010  2016-02-26
+        Added croak to cases where Perl is < 5.012 and negative seconds are used for functions related to localtime.

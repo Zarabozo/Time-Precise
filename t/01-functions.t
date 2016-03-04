@@ -52,8 +52,13 @@ my $time_from = get_gmtime_from (
 is $time_from, $time, 'get_gmtime_from';
 
 my $future_time = scalar gmtime '1444222866.7336199';
-my $past_time = scalar gmtime '0.7336199';
-my $ac_time = scalar gmtime '-1444222866.7336199';
 is $future_time, 'Wed Oct  7 13:01:06.7336199 2015', 'gmtime can go past year 2038';
+
+my $past_time = scalar gmtime '0.7336199';
 is $past_time, 'Thu Jan  1 00:00:00.7336199 1970', 'gmtime past time as expected';
-is $ac_time =~ /^Thu Mar 27 10:58:5\d\.7336199 1924$/, 1, 'gmtime can go way back (negative seconds)';
+
+SKIP: {
+	skip 'Not a Perl >= 5.012', 1 if $] < 5.012;
+	my $ac_time = scalar gmtime '-1444222866.7336199';
+	is $ac_time =~ /^Thu Mar 27 10:58:5\d\.7336199 1924$/, 1, 'gmtime can go way back (negative seconds)';
+}
