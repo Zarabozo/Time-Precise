@@ -56,4 +56,4 @@ my $past_time = scalar gmtime '0.7336199';
 my $ac_time = scalar gmtime '-1444222866.7336199';
 is $future_time, 'Wed Oct  7 13:01:06.7336199 2015', 'gmtime can go past year 2038';
 is $past_time, 'Thu Jan  1 00:00:00.7336199 1970', 'gmtime past time as expected';
-is $ac_time, 'Thu Mar 27 10:58:53.7336199 1924', 'gmtime can go way back (negative seconds)';
+is $ac_time =~ /^Thu Mar 27 10:58:5\d\.7336199 1924$/, 1, 'gmtime can go way back (negative seconds)';

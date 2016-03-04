@@ -8,7 +8,7 @@ use Time::HiRes;
 
 use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK $PRECISION );
 use subs qw(localtime gmtime time sleep );
-$VERSION   = '1.0004';
+$VERSION   = '1.0006';
 
 @ISA    = qw(Exporter);
 @EXPORT = qw(time localtime gmtime sleep timegm timelocal is_valid_date is_leap_year time_hashref gmtime_hashref get_time_from get_gmtime_from);
@@ -87,38 +87,32 @@ sub time () {
 	sprintf '%0.'.$PRECISION.'f', Time::HiRes::time();
 }
 
-sub localtime (;$) { # Precise localtime: always use full year format.
+sub _localtime {
+	my $gm = shift;
 	my $arg = $_[0];
 	$arg = time unless defined $arg;
 	$arg = sprintf '%.'.$PRECISION.'f', $arg;
 	my ($seconds, $microseconds) = split /\./, $arg;
 	if (wantarray) {
-		my @lt = CORE::localtime($arg);
+		my @lt = $gm ? CORE::gmtime($arg) : CORE::localtime($arg);
 		$lt[0] .= ".$microseconds" if $PRECISION;
 		$lt[5] += 1900;
 		return @lt;
 	} else {
-		my $str = scalar CORE::localtime($arg);
-		$str =~ s/(\d{2}:\d{2}:\d{2}) (\d{4})/$1.$microseconds $2/;
+		my $str = $gm ? scalar CORE::gmtime($arg) : scalar CORE::localtime($arg);
+		$str =~ s/(\d{2}:\d{2}:\d{2}) (\d{4})/$PRECISION ? "$1.$microseconds $2" : "$1 $2"/e;
 		$str;
 	}
 }
 
+sub localtime (;$) { # Precise localtime: always use full year format.
+	unshift @_, 0;
+	goto &_localtime;
+}
+
 sub gmtime (;$) { # Precise localtime: always use full year format.
-	my $arg = $_[0];
-	$arg = time unless defined $arg;
-	$arg = sprintf '%.'.$PRECISION.'f', $arg;
-	my ($seconds, $microseconds) = split /\./, $arg;
-	if (wantarray) {
-		my @lt = CORE::gmtime($arg);
-		$lt[0] .= ".$microseconds" if $PRECISION;
-		$lt[5] += 1900;
-		return @lt;
-	} else {
-		my $str = scalar CORE::gmtime($arg);
-		$str =~ s/(\d{2}:\d{2}:\d{2}) (\d{4})/$1.$microseconds $2/;
-		$str;
-	}
+	unshift @_, 1;
+	goto &_localtime;
 }
 
 sub sleep {
@@ -446,12 +440,12 @@ but if you don't specify anything at all, then it will default to the current da
 Example:
 
     my $time = get_time_from (
-        year 	=> 1975,
-        month	=> 9,
-        day		=> 3,
-        hour	=> 8,
-        minute	=> 33,
-        second	=> 12.0067514,
+        year    => 1975,
+        month   => 9,
+        day     => 3,
+        hour    => 8,
+        minute  => 33,
+        second  => 12.0067514,
     );
     
     # $time is now 178983192.0067514
