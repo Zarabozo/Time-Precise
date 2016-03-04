@@ -8,7 +8,7 @@ use Time::HiRes;
 
 use vars qw( $VERSION @ISA @EXPORT @EXPORT_OK $PRECISION );
 use subs qw(localtime gmtime time sleep );
-$VERSION   = '1.0002';
+$VERSION   = '1.0004';
 
 @ISA    = qw(Exporter);
 @EXPORT = qw(time localtime gmtime sleep timegm timelocal is_valid_date is_leap_year time_hashref gmtime_hashref get_time_from get_gmtime_from);
@@ -333,15 +333,13 @@ sub _get_time_from {
 
 1;
 
+__END__
+
+=pod
+
 =head1 NAME
 
 Time::Precise - Extending standard time related functions to always include nanoseconds and always use full year.
-
-=head1 VERSION
-
-Version 1.0
-
-=cut
 
 =head1 SYNOPSIS
 
@@ -351,35 +349,52 @@ C<timelocal> and C<timegm>. It also includes a few extra helper functions descri
 
 B<Note that this module won't affect any other code or modules, it will only affect the standard functions where it is explicitly C<use>d.>
 
-	use Time::Precise;
-	
-	# ...or, if you don't want anything exported by default:
-	use Time::Precise ();
-	
-	# ...or, to import only a certain function:
-	use Time::Precise qw(time localtime);
-
+    use Time::Precise;
+    
+    # ...or, if you don't want anything exported by default:
+    use Time::Precise ();
+    
+    # ...or, to import only a certain function:
+    use Time::Precise qw(time localtime);
+    
     # Time in seconds, but includes nanoseconds. (e.g. 1444217081.0396979)
-	my $time = time;
-	
-	# Localtime includes nanoseconds too. (e.g. Wed Oct  7 06:25:44.0032990 2015)
-	my $localtime = localtime;
-	
-	# Same applies here accordingly:
-	my @localtime = localtime;
-	
-	# Sleep for a second and a half:
-	sleep 1.5;
-	
-	# Use functions from Time::Local as normal, but they will work with nanoseconds:
+    my $time = time;
+    
+    # Localtime includes nanoseconds too. (e.g. Wed Oct  7 06:25:44.0032990 2015)
+    my $localtime = localtime;
+    
+    # Same applies here accordingly:
+    my @localtime = localtime;
+    
+    # Sleep for a second and a half:
+    sleep 1.5;
+    
+    # Use functions from Time::Local as normal, but they will work with nanoseconds:
     my $seconds = timelocal @localtime;
-
 
 =head1 EXPORT
 
 Functions exported by default: C<time>, C<localtime>, C<gmtime>, C<sleep>, C<timegm>, C<timelocal>, C<is_valid_date>,
 C<is_leap_year>, C<time_hashref>, C<gmtime_hashref>, C<get_time_from>, C<get_gmtime_from>.
 
+=head1 $Time::Precise::PRECISION
+
+$Time::Precise::PRECISION is set by default to 7 and it refers to the number of decimals used for nanoseconds. You
+can set it to anything else if you want, but generally speaking, setting it to more than 7 will most likely just add
+zeros to the right (at least in all systems where I've tried it).
+
+This is currently a global setting, so be careful not to alter it if that can cause other packages using this module
+to expect a different number of decimals. A solution to this when you only need to change the precision in a certain
+place is to localize it:
+
+    use Time::Precise;
+    
+    my $time = time; # Will have 7 decimals
+    {
+	    local $Time::Precise::PRECISION = 3;
+	    my $short = time; # Will have 3 decimals
+    }
+    $time = time; # Will have 7 decimals again
 
 =head1 Functions
 
@@ -403,23 +418,23 @@ This will return 1 or 0 depending on the date passed being valid.
 
 This will return 1 or 0 depending on the year passed being a leap year.
 
-=head2 time_hashref(<$seconds>), gmtime_hashref(<$gmt_seconds>), gmtime_hashref(<$seconds>), gmtime_hashref(<$gmt_seconds>)
+=head2 time_hashref(<$seconds>), gmtime_hashref(<$gmt_seconds>)
 
 This is a variation of C<localtime> and C<gmtime> respectively. It takes an optional C<$seconds> argument or uses the current time if no
 argument is passed. It will return a hashref containing the corresponding elements for it. Example:
 
-	{
-		day          => "07",
-		hour         => "06",
-		is_leap_year => 0,
-		isdst        => 1,
-		minute       => 45,
-		month        => 10,
-		second       => 34.61739,
-		wday         => 3,
-		yday         => 279,
-		year         => 2015,
-	}
+    {
+        day          => "07",
+        hour         => "06",
+        is_leap_year => 0,
+        isdst        => 1,
+        minute       => 45,
+        month        => 10,
+        second       => 34.61739,
+        wday         => 3,
+        yday         => 279,
+        year         => 2015,
+    }
 
 =head2 get_time_from(year => $year, month => $month, day => $day, hour => $hour, minute => $minute, second => $second)
 
@@ -430,20 +445,20 @@ but if you don't specify anything at all, then it will default to the current da
 
 Example:
 
-	my $time = get_time_from (
-		year 	=> 1975,
-		month	=> 9,
-		day		=> 3,
-		hour	=> 8,
-		minute	=> 33,
-		second	=> 12.0067514,
-	);
-	
-	# $time is now 178983192.0067514
-	
-	my $date = localtime $time;
-	
-	# $date is now Wed Sep  3 08:33:12.0067514 1975
+    my $time = get_time_from (
+        year 	=> 1975,
+        month	=> 9,
+        day		=> 3,
+        hour	=> 8,
+        minute	=> 33,
+        second	=> 12.0067514,
+    );
+    
+    # $time is now 178983192.0067514
+    
+    my $date = localtime $time;
+    
+    # $date is now Wed Sep  3 08:33:12.0067514 1975
 
 =head1 AUTHOR
 
@@ -455,15 +470,11 @@ Please report any bugs or feature requests to C<bug-time-precise at rt.cpan.org>
 the web interface at L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Time-Precise>.  I will be notified, and then you'll
 automatically be notified of progress on your bug as I make changes.
 
-
-
-
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
     perldoc Time::Precise
-
 
 You can also look for information at:
 
@@ -487,13 +498,14 @@ L<http://search.cpan.org/dist/Time-Precise/>
 
 =back
 
+=head1 SEE ALSO
 
-=head1 ACKNOWLEDGEMENTS
+L<Time::Local>, from which several lines of code have been taken.
 
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2015 Francisco Zarabozo.
+Copyright 2015 Francisco Zarabozo. Parts taken from L<Time::Local>.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of the the Artistic License (2.0). You may obtain a
@@ -533,5 +545,3 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 =cut
-
-1; # End of Time::Precise

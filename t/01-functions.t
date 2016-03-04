@@ -13,13 +13,13 @@ is $ok, 1, 'time has nanoseconds';
 
 $time = '178983192.0067514';
 my $gmtime = 'Wed Sep  3 13:33:12.0067514 1975';
-is $gmtime, scalar gmtime $time, 'gmtime works with nanoseconds';
+is $gmtime, scalar(gmtime($time)), 'gmtime works with nanoseconds';
 
 my $current_time = time;
 sleep .5;
 $current_time = time - $current_time;
 $current_time = sprintf '%0.1f', $current_time;
-$ok = ($current_time > 0.4 and $current_time < 0.6) ? 1 : 0;
+$ok = ($current_time >= 0.4 and $current_time <= 0.6) ? 1 : 0;
 is $ok, 1, 'sleep works with nanoseconds';
 
 my @gmtime = gmtime $time;
